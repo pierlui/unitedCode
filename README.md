@@ -31,5 +31,5 @@ The Output/DATE directory must contain the WEPL calibration and TVcorrection coe
 path/to/object/DATE/RUN#/Output/DATE/wet5calibExp.txt
 path/to/object/DATE/RUN#/Output/DATE/TVcalib.txt
 
-The pedestal values 
+The pedestal values (line 140 on writeBinary.cc) must be changed according to the run date. 
 
