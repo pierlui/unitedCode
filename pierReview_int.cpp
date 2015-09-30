@@ -1,15 +1,15 @@
 //******************************************************************************************
 //*New Program used to read raw data form binary file and store them in a useful format    *
 //*P. Piersimoni August 05th, 2014 - Loma Linda University								   *
-//******************************************************************************************	
+//******************************************************************************************
 
 
 #include <iostream>
-#include <stdlib.h>     // exit, EXIT_FAILURE 
+#include <stdlib.h>     // exit, EXIT_FAILURE
 #include <fstream>
 #include <string>
 #include <bitset>       // std::bitset
-#include <math.h> 
+#include <math.h>
 #include <iomanip>      // std::setprecision
 #include <stdio.h>
 #include <cstdio>
@@ -40,8 +40,8 @@ bool PlaneFlag[4]={};
 bool OneFPGAflag[12]={};
 float v_strips[4][15000000];
 float t_strips[4][15000000];
-bool stripsDistance_flag=0; 
-float StripDistance=5.;// 
+bool stripsDistance_flag=0;
+float StripDistance=5.;//
 int GoodEventCounter=0;
 bool stop_reading=0;
 size_t file_size=0;
@@ -76,7 +76,7 @@ unsigned short reverse_short_bytes(unsigned short x)
     //This function takes 16-bit short and switches the order of the high byte (first 8-bits) and low byte (last 8-bits)
 	//shift low byte to high byte position
 	//shift high byte to low byte position
-	//recombine high/low bytes into 2 byte variable   
+	//recombine high/low bytes into 2 byte variable
     //return reversed_bytes;
     return ( x << 8 ) + ( x >> 8 );  //OK
 }
@@ -96,27 +96,19 @@ unsigned int reverse_int_bytes(unsigned int x)
                                              //current              //qued
 void read_append_data( unsigned long long & bit_container, unsigned int & num_bits , int &origin)
 {                             //this is 8 bits
-    unsigned int shift_by = BITS_PER_BYTE * sizeof(*buffer); // shift is equivalent to the number of bits in a byte (8) multiplied by the number of bytes 
+    unsigned int shift_by = BITS_PER_BYTE * sizeof(*buffer); // shift is equivalent to the number of bits in a byte (8) multiplied by the number of bytes
 															 // composing the buffer (4)= 32 bits in total
-    
     bit_container <<= shift_by;   					// Shift current_bits over by 4-bytes so another 4-bytes can be appended to the end
-
-//	unsigned int* 
 	buffer = (unsigned int*) malloc (sizeof(unsigned int));
-
     fread (buffer,sizeof(*buffer),1,in_file);  		// Read next 4-bytes from the current reading position inside the file
-//	fseek ( in_file, sizeof(*buffer), origin );
 	origin= origin+sizeof(*buffer);
-	
 
     auto temp = reverse_int_bytes(buffer[0]);       // Reverse the order of the bytes previously read into the buffer
-//	cout<<(bitset<32>)temp<<" temp - origin: "<<hex<<origin<<"\n";
-    bit_container |= temp;                      	// Add these bits to the end of current_bits into the 4-bytes slot 
-//	cout<<(bitset<64>)bit_container<< " "<<__LINE__<<" container \n\n";
+    bit_container |= temp;                      	// Add these bits to the end of current_bits into the 4-bytes slot
 													// opened up by shifting the existing bits by 4-bytes
     num_bits += shift_by;                        	// Having just read and appended 4-bytes = 32-bits to current_bits,
 													// add 32 to the count of # bits represented by current_bits
-		if(origin>file_size )stop_reading=1;
+	if(origin>file_size )stop_reading=1;
 	free(buffer);
 }
                                              //current              //qued
@@ -128,9 +120,6 @@ unsigned int extract_N_bits( unsigned long long & bit_container, unsigned int & 
     extracted_bits >>= shift_size;
     bit_container = bit_container - ( extracted_bits << shift_size );
     num_bits -= bits_2_extract;
-//	cout<<dec<<num_bits<<" "<<__LINE__ <<"num bit \n";	
-//	cout<<(bitset<32>)extracted_bits<<" "<<__LINE__ <<"extracted \n";
-//	cout<<(bitset<64>)bit_container<<" "<<__LINE__<<" container \n\n";
     return extracted_bits;
 }
 //this function groups together the read and extract functions, and makes the check on the queud bits
@@ -139,14 +128,13 @@ unsigned int just_read(unsigned long long & bit_container, unsigned int & num_bi
 	if(origin>file_size ){
 		stop_reading=1;
 		return 0;
-		}else
-		if(num_bits<bits_2_extract)read_append_data( bit_container, num_bits, origin );
-		unsigned int required_bts = extract_N_bits(bit_container, num_bits, bits_2_extract);
-		return required_bts;
-		
+	} else if(num_bits<bits_2_extract)read_append_data( bit_container, num_bits, origin );
+	unsigned int required_bts = extract_N_bits(bit_container, num_bits, bits_2_extract);
+	return required_bts;
+
 }
-	
-	
+
+
 //////////////////////////////////////////////////////////file header function
 void read_file_header(unsigned long long fileHeader_bits, char *namefile)
 {
@@ -155,7 +143,7 @@ void read_file_header(unsigned long long fileHeader_bits, char *namefile)
 	if(fileHeader_bits!= 13784398){
 		perror ("The file is not a pCT file");
 		exit(1);
-		}
+	}
 }
 //////////////////////////////////////////////////////////run number function
 void read_run_number(unsigned long long runNumber_bits){cout<<"Run Number: "<<runNumber_bits<<endl;}
@@ -163,12 +151,12 @@ void read_run_number(unsigned long long runNumber_bits){cout<<"Run Number: "<<ru
 void read_run_startTime(unsigned long long startTime_bits)
 {
 //old version to be used for sept and july 2014 data
-//	union { 
-//			float f; 
-//			unsigned int integer; 
+//	union {
+//			float f;
+//			unsigned int integer;
 //		  } float2int;
 //	float2int.integer = startTime_bits;
-//	int TIME = float2int.f; 
+//	int TIME = float2int.f;
 	time_t RealTime =startTime_bits;
 	cout<<"The run start time is: "<< ctime (&RealTime)<<endl;
 }
@@ -185,7 +173,7 @@ void read_projection_angle(unsigned long long projectionangle_bits){cout<<"The p
 
 //////////////////////////////////////////////////////////file header function
 // I need a lot of parameters because I have to look for the string.
-// I keep in memory the old values of current and queued and if I don't find the STRING("1pCT") I restore the old values, 
+// I keep in memory the old values of current and queued and if I don't find the STRING("1pCT") I restore the old values,
 // but I sottract 1 to queued so that at the next step (I prevent a new reading) bits will be extract starting after 1 position:
 // if I have in memory e.g. 0000>0000STRING ( > is the point marked by queued), I will extract the first time 0000STRING.
 // if I sottract 1 to queued at the next step, after restoring current, I will have: 00000>000STRING, so I will extract 000STRING.
@@ -254,8 +242,8 @@ int read_FPGAsHeader (unsigned long long FPGAsHeader_bits, int FPGA_num)
 		return FPGAsHeader_pz[5];
 	}else{
 		perror ("Error: FPGA Address mismatch");
-		exit(1);  			
-	}	
+		exit(1);
+	}
 
 }
 
@@ -313,9 +301,9 @@ int read_EnFPGAs (unsigned long long EnFPGAs_bits, bool &ped_flag)
 
 
 
-// this is a simple function calculating the correct strip number to be kept: among all strips hit, I determine Max and min and
-// I calculate the distance between max and min, if this distance is <3, I set the Stripflag to 1. If two chips are hit, may be t
-// they are contigous and so may be just 1 proton hit them, but if the distance is too high 2 protons hit them. 
+// this is a function calculating the correct strip number to be kept: among all strips hit, I determine Max and min and
+// I calculate the distance between max and min, if this distance is < StripDistance set above, I set the Stripflag to 1. If two chips are hit, may be
+// they are contigous and so may be just 1 proton hit them, but if the distance is too high 2 protons hit them.
 // I can say this just from the strip, I don't need a control on the chip numbers.
 // Obviousely if the hit strip is just one this fuction return it, but I don't need another if inside the code
 int keep_correct_strip(vector<int> &strip_numbVec,size_t size_vec)
@@ -324,30 +312,22 @@ int keep_correct_strip(vector<int> &strip_numbVec,size_t size_vec)
 	float Max, min;
 	Max=min=strip_numbVec[0];
 	int true_strip;
-//	if(size_vec==1){	
-//	true_strip=strip_numbVec[0];
-//	stripsDistance_flag=1;0000 
-//	return true_strip;
-//	}else{
-    	for(int i=0; i<size_vec; i++) {
-      		if( strip_numbVec[i]>Max ) Max=strip_numbVec[i];
-      		if( strip_numbVec[i]<min ) min=strip_numbVec[i];
-    	}
-		if ((Max-min)<StripDistance) stripsDistance_flag=1;
-		true_strip=lround((Max+min)/2);
-		return true_strip;
-//		}
+	for(int i=0; i<size_vec; i++) {
+  		if( strip_numbVec[i]>Max ) Max=strip_numbVec[i];
+  		if( strip_numbVec[i]<min ) min=strip_numbVec[i];
+	}
+	if ((Max-min)<StripDistance) stripsDistance_flag=1;
+	true_strip=lround((Max+min)/2);
+	return true_strip;
 }
 // This funtion is used to fill the correct strip array with the calculated strip number, according to FPGA adress
 void fill_strips_arrays(int strip_calc, int FPGANo)
 {
-//cout<<"n "<<FPGANo<<" val "<<strip_calc<<endl;
 	if(FPGANo<4)v_strips[FPGANo][GoodEventCounter]=strip_calc;
 	if(FPGANo==4  || FPGANo==5)  t_strips[0][GoodEventCounter]=strip_calc;
 	if(FPGANo==6  || FPGANo==7)  t_strips[1][GoodEventCounter]=strip_calc;
 	if(FPGANo==8  || FPGANo==9)  t_strips[2][GoodEventCounter]=strip_calc;
 	if(FPGANo==10 || FPGANo==11) t_strips[3][GoodEventCounter]=strip_calc;
-//cout<<t_strips[3][GoodEventCounter]<<endl<<endl;
 }
 void Set_FPGAsFlag(bool &FPGAs_flag, int FPGANo)
 {
@@ -377,7 +357,7 @@ int Get_StripNumber(int ChipNo, int ChannelNo, int FPGANo ){
 //OUTPUT by Andriy
 // V: 0..383  FPGA#3    384..767
 // T: 767---#11--0 767---#10---0
-// V: 0..383  FPGA#2   384..767 
+// V: 0..383  FPGA#2   384..767
 // T: 767---#9--0  767---#8----0
 //
 // T: 0---#6---767 0----#7----767
@@ -389,7 +369,7 @@ int Get_StripNumber(int ChipNo, int ChannelNo, int FPGANo ){
 // ^
 // | V3: 0..383  FPGA#3    0..383
 // | T: 0---#11--767 767---#10---1535    		*****REAR FPGAs
-// | V2: 0..383  FPGA#2   0....383   
+// | V2: 0..383  FPGA#2   0....383
 // | T: 0---#9--767  768---#8----1535
 // |
 // | T: 0---#6---767 768----#7----1535    same
@@ -401,7 +381,7 @@ int Get_StripNumber(int ChipNo, int ChannelNo, int FPGANo ){
 	if(FPGANo>=0&&FPGANo<=3){
 	//Vplanes
 	if(ChipNo<=5&&ChipNo>=0)StripNo= (5-ChipNo)*64+ChannelNo; 		//Left	 |for all the 4 V planes
-	if(ChipNo<=11&&ChipNo>=6)StripNo=(ChipNo-6)*64+(64-ChannelNo-1);//Right	 |is the same		
+	if(ChipNo<=11&&ChipNo>=6)StripNo=(ChipNo-6)*64+(64-ChannelNo-1);//Right	 |is the same
 	}
 	if(FPGANo>=4&&FPGANo<=7){
 //	T Planes Front, before the the detector
@@ -439,170 +419,147 @@ void write_data2file(string dirOut, string NameFile)
 	bool Write_mm=true;
 	NameFile= dirOut+"/"+ NameFile+".out";
 	output.open(NameFile.c_str(),ios::trunc);
-	if (output != NULL){
+	if (output.is_open()){
 		cout <<"Writing data to file: "<<NameFile<<endl;
-		}else {
+	}else {
 		cout <<"Can't write data to file: "<<NameFile<<endl;
 		perror ("Error opening file");
 		exit(1);
-
 	}
 	if (Write_mm){
 		ConvertTomm();//mm
 		output<<"EvtNb\t V0mm \t T0mm \t V1mm \t T1mm \t V2mm \t T2mm \t V3mm \t T3mm \t Ped0 \t ADC0 \t Ped1 \t ADC1 \t Ped2 \t ADC2 \t Ped3 \t ADC3  \t Ped4 \t  ADC4"<<endl;
 	}else output<<"EvtNb\t V0   \t T0   \t V1   \t T1   \t V2   \t T2   \t V3   \t T3   \t Ped0 \t ADC0 \t Ped1 \t ADC1 \t Ped2 \t ADC2 \t Ped3 \t ADC3  \t Ped4 \t ADC4"<<endl;
 output<<GoodEventCounter<<endl;
-//		for(int i=0;i<GoodEventCounter;i++){
-//		output<<i; 
-//		for (int j=0;j<4;j++)output<<"\t"<< -43.717 + v_strips[j][i]*.228;
-//		for (int j=0;j<4;j++){
-//			if ( t_strips[j][i]>=0   && t_strips[j][i]<384 )output<<"\t"<<tPlaneFirstStrip[j][0]-.228*t_strips[j][i];
-//			if ( t_strips[j][i]>=384 && t_strips[j][i]<768 )output<<"\t"<<tPlaneFirstStrip[j][1]-.228*(t_strips[j][i]-384);
-//			if ( t_strips[j][i]>=768 && t_strips[j][i]<1152)output<<"\t"<<tPlaneFirstStrip[j][2]-.228*(t_strips[j][i]-768);
-//			if ( t_strips[j][i]>=1152&& t_strips[j][i]<1536)output<<"\t"<<tPlaneFirstStrip[j][3]-.228*(t_strips[j][i]-1152);
-//		}
-//	//	for (int j=0;j<4;j++)output<<"\t"<<u[j];//the u coord is always the same, no need to write it
-//		for (int j=0;j<5;j++)output<<"\t"<< pedestal[i][j]<<"\t"<<energy[i][j];
-//		output<<endl;
-//		}
-//	}else{//Strip numbers
-//	output<<"EvtNb\t V0   \t T0   \t V1   \t T1   \t V2   \t T2   \t V3   \t T3   \t Ped0 \t ADC0 \t Ped1 \t ADC1 \t Ped2 \t ADC2 \t Ped3 \t ADC3  \t Ped4 \t ADC4"<<endl;
-//output<<GoodEventCounter<<endl;
+
 		for(int i=0;i<GoodEventCounter;i++){
-			output<<i; 
+			output<<i;
 			for (int j=0;j<4;j++)output<<"\t"<< v_strips[j][i]<< "\t"<<t_strips[j][i];
 			for (int j=0;j<5;j++)output<<"\t"<< pedestal[i][j]<<"\t"<<energy[i][j];
 			output<<endl;
 		}
 	output.close();
 }
-//void writeBinaryForReco()
-//{
-//	
-//}
+
 // |\\  //|    //\    ||  |\\  || ****---- *************************************************
 // ||\\//||   // \\   ||  ||\\ || ****---- *************************************************
 // || \/ ||  //ZZZ\\  ||  || \\|| -------- *************************************************
-// ||    || //     \\ ||  ||  \\| ******** ************************************************* 
+// ||    || //     \\ ||  ||  \\| ******** *************************************************
 
 int main (int argc, char* argv[])
 {
 ///////////////////////////////////Needed for conversion to mm
 for (int i=0; i<4; ++i){
-	tPlaneFirstStrip[0][i]=FirstStrip1[i];//just one array for all the planes
-	tPlaneFirstStrip[1][i]=FirstStrip2[i];
-	tPlaneFirstStrip[2][i]=FirstStrip3[i];
-	tPlaneFirstStrip[3][i]=FirstStrip4[i];
-	}
+tPlaneFirstStrip[0][i]=FirstStrip1[i];//just one array for all the planes
+tPlaneFirstStrip[1][i]=FirstStrip2[i];
+tPlaneFirstStrip[2][i]=FirstStrip3[i];
+tPlaneFirstStrip[3][i]=FirstStrip4[i];
+}
 ///////////////////////////////////Needed for conversion to mm
 ////opening the binary file
-	bool binary=0;
-	char data_filename[256];
-	char completeNameFile[256];
-	char Inputdir[500];//"/dt3/pct/pCT_DATA/CIRS_head_phantom/Experimental/09132014/Run40-superior/Input";
-	char Outputdir[500];//="/dt3/pct/pCT_DATA/CIRS_head_phantom/Experimental/09132014/Run40-superior/Output/04152015/TextFiles";
-//	char param[256];
+bool binary=0;
+char data_filename[256];
+char completeNameFile[256];
+char Inputdir[500];
+char Outputdir[500];
 
-	for (int i=0; i<argc; i++)printf("%s\n",argv[i]);
-	if (argc<5) {
-    cout<< "Please add parameters to the executable:\n " << argv[0] << " projection# fileName[Object_RUN#]  RawDataDir[path/to/MMDDYYYY/RUN#] date[MMDDYYYY] OutputMode[0 =ASCII 1=BINARY]" <<endl;
-    return 0;
-  }
+for (int i=0; i<argc; i++)printf("%s\n",argv[i]);
+if (argc<6) {
+cout<< "Please add parameters to the executable:\n " << argv[0] << " projection# fileName[Object_RUN#]  RawDataDir[path/to/MMDDYYYY/RUN#] date[MMDDYYYY] OutputMode[0 =ASCII 1=BINARY]" <<endl;
+return 0;
+}
 
-	int AngleNb = atoi(argv[1]); 
-	binary = atoi(argv[5]);
-   cout << "Binary boolean is " << binary << endl;
-	cout<<"Projection n "<<AngleNb<<endl;
-	sprintf( data_filename, "%s_%03.0f",argv[2],(double)AngleNb); 
-	sprintf(Inputdir,"%s/Input",argv[3]);
-	sprintf( completeNameFile, "%s/%s.dat",Inputdir,data_filename); 
-	sprintf(Outputdir,"%s/Output/%s",argv[3],argv[4]);
-	cout<<"Reading "<<completeNameFile <<endl; 
-	in_file = fopen(completeNameFile, "rb");
-	if (in_file == NULL){
-		perror ("Error opening file");
-		exit(1);
-		}
-	fseek(in_file, 0L, SEEK_END);
-	 file_size = ftell(in_file);
-	rewind(in_file);
-	//cout<<"size"<<file_size<<endl;
-	unsigned long long current_bits = 0; 	// holds the ULL representation of all the bits read into memory
-											// and placed in the correct order
-
-    unsigned int queued_bits = 0;			// # of bits currently represented by the ULL variable "current_bits"
-											//(i.e. # bits in queue waiting to be processed)
-
-
-	unsigned long long extracted_bits;      // bit containing information needed
-	int required_bits=0;
+int AngleNb = atoi(argv[1]);
+binary = atoi(argv[5]);
+cout << "Binary boolean is " << binary << endl;
+cout<<"Projection n "<<AngleNb<<endl;
+sprintf( data_filename, "%s_%03.0f",argv[2],(double)AngleNb);
+sprintf(Inputdir,"%s/Input",argv[3]);
+sprintf( completeNameFile, "%s/%s.dat",Inputdir,data_filename);
+sprintf(Outputdir,"%s/Output/%s",argv[3],argv[4]);
+cout<<"Reading "<<completeNameFile <<endl;
+in_file = fopen(completeNameFile, "rb");
+if (in_file == NULL){
+	perror ("Error opening file");
+	exit(1);
+}
+fseek(in_file, 0L, SEEK_END);
+file_size = ftell(in_file);
+rewind(in_file);
+//cout<<"size"<<file_size<<endl;
+unsigned long long current_bits = 0; 	// holds the ULL representation of all the bits read into memory
+										// and placed in the correct order
+unsigned int queued_bits = 0;			// # of bits currently represented by the ULL variable "current_bits"
+										//(i.e. # bits in queue waiting to be processed)
+unsigned long long extracted_bits;      // bit containing information needed
+int required_bits=0;
 //this for extracts the first 8 byte from file
-	for( int j = 0; j < 2; j++){
-    read_append_data( current_bits, queued_bits, stream_position );
+for( int j = 0; j < 2; j++){
+read_append_data( current_bits, queued_bits, stream_position );
 //	cout<<j<<"j "<<"current "<<(bitset<64>)current_bits<<endl;
-	}
+}
 
 //Reading FILE header, calling read_file_header function
 //file header is made by 4 bytes identifien a pCT file, 32 bits needed
-	required_bits=32;
-	extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-	read_file_header(extracted_bits,data_filename);
+required_bits=32;
+extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+read_file_header(extracted_bits,data_filename);
 
 //reading Run Number: 24 bits
-	required_bits=24;
-	extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-	read_run_number(extracted_bits);
+required_bits=24;
+extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+read_run_number(extracted_bits);
 
 //reading Run start time:32 bits
-	required_bits=32;
-	extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-	read_run_startTime(extracted_bits);
+required_bits=32;
+extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+read_run_startTime(extracted_bits);
 
 //reading status bits:8 bits
-	required_bits=8;
-	extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-	read_statusBits(extracted_bits);
+required_bits=8;
+extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+read_statusBits(extracted_bits);
 
 //reading program version number:8 bits
-	required_bits=8;
-	extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-	read_programVersion(extracted_bits);
+required_bits=8;
+extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+read_programVersion(extracted_bits);
 //reading projection_angle:12 bits
-	required_bits=12;
-	extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-	read_projection_angle(extracted_bits);
+required_bits=12;
+extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+read_projection_angle(extracted_bits);
 
 //////////////////////////////////////////////////////////////////////////////////////////here a cycle all over the while loop all over the events
-	while(!stop_reading){
+while(!stop_reading){
 
 //reading Beginning-of-Event identifier: 24 bits. the string is: 1111 0000 0100 0011 0101 0100= "1pCT" in ASCII std= 15745876(int dec)
 //I need a for cycle because in the documentation it is not said how many 0 bits are inserted before the "1pCT" string
 //
-		bool Eureka=0;
-		required_bits=24;
-		while(!Eureka){
-		if(stream_position>=file_size )break;
-			if(queued_bits<required_bits)read_append_data( current_bits, queued_bits, stream_position );
-			unsigned long long temp_container= current_bits;
-			unsigned int temp_queued = queued_bits;
-			extracted_bits = extract_N_bits( current_bits, queued_bits, required_bits );
-			Eureka = read_BegOfEvent(extracted_bits,current_bits, temp_container,queued_bits, temp_queued);
-			}
-		if(stream_position>=file_size )break;
+	bool Eureka=0;
+	required_bits=24;
+	while(!Eureka){
+	if(stream_position>=file_size )break;
+		if(queued_bits<required_bits)read_append_data( current_bits, queued_bits, stream_position );
+		unsigned long long temp_container= current_bits;
+		unsigned int temp_queued = queued_bits;
+		extracted_bits = extract_N_bits( current_bits, queued_bits, required_bits );
+		Eureka = read_BegOfEvent(extracted_bits,current_bits, temp_container,queued_bits, temp_queued);
+		}
+	if(stream_position>=file_size )break;
 //reading the  event time tag: 36 bits
-		required_bits=36;
-		extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-		read_timeTag(extracted_bits);
+	required_bits=36;
+	extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+	read_timeTag(extracted_bits);
 
 //reading the time since previous trigger: 12 bits
-		required_bits=12;
-		extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-		read_timeDelta (extracted_bits);
+	required_bits=12;
+	extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+	read_timeDelta (extracted_bits);
 
 //reading Event header: 24 bits
-		required_bits=24;
-		extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-		read_eventHeader (extracted_bits);
+	required_bits=24;
+	extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+	read_eventHeader (extracted_bits);
 
 //reading 12 tracker FPGA headers: 12 bits
 
@@ -612,99 +569,96 @@ for (int i=0; i<4; ++i){
 // strip_numb_vec is used to store multiple strip hit
 // stripsDistance_flag tells if the distance between two hit strips (determined by StripDistance) is too much for a single proton
 // if both FPGAs and strip are true the event is declred good
-		bool FPGAs_flag=0;
-		vector<int> strip_numb_vec; 
+	bool FPGAs_flag=0;
+	vector<int> strip_numb_vec;
 //////////////////////////////////
-		int Strip=0;
-		int hit_chips=0;
-		int strip_address=0;
-		int clusters_num=0;
-		int strip_num=0;
-		int FPGA_numb;
-		int ASIC_address=0;
-		required_bits=12;
-		for (FPGA_numb=0;FPGA_numb<12;FPGA_numb++){
-			size_t strip_counter=0;
-			strip_numb_vec.clear();
-			extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-			hit_chips=	read_FPGAsHeader (extracted_bits, FPGA_numb);
-			if (hit_chips>0){
-//this cycle reads chip-headers, according to FPGANofChips: 12 bits.		
-				required_bits=12;			
-				for(int i= 0;i<hit_chips;i++){
-					extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-					clusters_num = read_ASICHeader (extracted_bits, ASIC_address);
-//cout<<" hit addr "<<ASIC_address<<"\n";
-//this cycle reads Strips-headers, according to FPGANofStrips.
-					required_bits=12;
-					while(clusters_num>0){//
-						extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-						strip_num =  read_stripHeader (extracted_bits, strip_address);//if strip number is 0 means 1 strip is hit			
-							for(int i=0;i<=strip_num;i++){
-							Strip=Get_StripNumber(ASIC_address, strip_address+i,FPGA_numb); 
-//							cout<<" Strip  "<<strip_address<<"\n ";
-							strip_numb_vec.push_back(Strip);		
-							strip_counter++;
-							}
-						clusters_num--;
-					}
-				}
-//cout<<"FPGA num "<<FPGA_numb<< endl<<endl;
-			}
-
-		//function to determine which strip to be kept
-		strip_numb_vec.resize(strip_counter);
-		if(strip_counter!=0){
-			Strip=keep_correct_strip(strip_numb_vec, strip_counter);
-			fill_strips_arrays(Strip, FPGA_numb);
-		}else stripsDistance_flag=0;
-		if(stripsDistance_flag==1)Set_FPGAsFlag(FPGAs_flag, FPGA_numb);
-		}//ending the FPGA reading
-
-		reset_FPGAflags();
-//////////////////////////////////////////////////////
-	//2 energy FPGAs reading
-	int count_channel=0;
-	for(int i=0;i<2;i++){
-	bool pedestal_flag=0;
+	int Strip=0;
+	int hit_chips=0;
+	int strip_address=0;
+	int clusters_num=0;
+	int strip_num=0;
+	int FPGA_numb;
+	int ASIC_address=0;
 	required_bits=12;
-	extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-	int channels=read_EnFPGAs(extracted_bits, pedestal_flag);
-		for (int j=0;j<channels;j++){
-			if (pedestal_flag){	
-				required_bits=8;
+	for (FPGA_numb=0;FPGA_numb<12;FPGA_numb++){
+		size_t strip_counter=0;
+		strip_numb_vec.clear();
+		extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+		hit_chips=	read_FPGAsHeader (extracted_bits, FPGA_numb);
+		if (hit_chips>0){
+//this cycle reads chip-headers, according to FPGANofChips: 12 bits.
+			required_bits=12;
+			for(int i= 0;i<hit_chips;i++){
 				extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-				int value =(int8_t)extracted_bits;
-//				cout<<"  ped "<<(bitset<8>)extracted_bits<<" v "<<value<<endl;
-				pedestal[GoodEventCounter][count_channel]=value;
-//			cout<<"  ped array "<<pedestal[GoodEventCounter][count_channel]<<endl;
-			}	
-			required_bits=16;
-			extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-			int value1 =(int16_t)extracted_bits;
-//			cout<<"  ene "<<(bitset<16>)extracted_bits<<" v "<<value1<< endl;
-	 		energy[GoodEventCounter][count_channel]=value1;
-//			cout<<"  ene array "<<energy[GoodEventCounter][count_channel]<<endl;
-			count_channel++;
-			if (pedestal_flag==0 && i==1){
-				required_bits=4;
-				extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
-
-			}	
+				clusters_num = read_ASICHeader (extracted_bits, ASIC_address);
+//this cycle reads Strips-headers, according to FPGANofStrips.
+				required_bits=12;
+				while(clusters_num>0){//
+					extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+					strip_num =  read_stripHeader (extracted_bits, strip_address);//if strip number is 0 means 1 strip is hit
+						for(int i=0;i<=strip_num;i++){
+						Strip=Get_StripNumber(ASIC_address, strip_address+i,FPGA_numb);
+						strip_numb_vec.push_back(Strip);
+						strip_counter++;
+						}
+					clusters_num--;
+				}
+			}
 		}
-	}		
-	if(FPGAs_flag==1)	GoodEventCounter++;
 
-////////////////////////////////////////////////////// 
+	//function to determine which strip to be kept
+	strip_numb_vec.resize(strip_counter);
+	if(strip_counter!=0){
+		Strip=keep_correct_strip(strip_numb_vec, strip_counter);
+		fill_strips_arrays(Strip, FPGA_numb);
+	}else stripsDistance_flag=0;
+	if(stripsDistance_flag==1)Set_FPGAsFlag(FPGAs_flag, FPGA_numb);
+	}//ending the FPGA reading
+
+	reset_FPGAflags();
+//////////////////////////////////////////////////////
+//2 energy FPGAs reading
+int count_channel=0;
+for(int i=0;i<2;i++){
+bool pedestal_flag=0;
+required_bits=12;
+extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+int channels=read_EnFPGAs(extracted_bits, pedestal_flag);
+	for (int j=0;j<channels;j++){
+		if (pedestal_flag){
+			required_bits=8;
+			extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+			int value =(int8_t)extracted_bits;
+//				cout<<"  ped "<<(bitset<8>)extracted_bits<<" v "<<value<<endl;
+			pedestal[GoodEventCounter][count_channel]=value;
+//			cout<<"  ped array "<<pedestal[GoodEventCounter][count_channel]<<endl;
+		}
+		required_bits=16;
+		extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+		int value1 =(int16_t)extracted_bits;
+//			cout<<"  ene "<<(bitset<16>)extracted_bits<<" v "<<value1<< endl;
+ 		energy[GoodEventCounter][count_channel]=value1;
+//			cout<<"  ene array "<<energy[GoodEventCounter][count_channel]<<endl;
+		count_channel++;
+		if (pedestal_flag==0 && i==1){
+			required_bits=4;
+			extracted_bits =just_read(current_bits, queued_bits,required_bits, stream_position);
+
+		}
+	}
+}
+if(FPGAs_flag==1)	GoodEventCounter++;
+
+//////////////////////////////////////////////////////
 //	if(stream_position%10000==0)cout<<stream_position<<" "<<file_size<<endl<<endl;
-	if(stream_position>file_size )stop_reading=1;
-	if(GoodEventCounter%1000000==0)cout<<GoodEventCounter<<" GoodEventCounter"<<" Stream position "<<stream_position<<" file size  "<<file_size<<endl<<endl;
-	}
-	if(!binary)write_data2file(Outputdir,data_filename);
-	if(binary){
-		ConvertTomm();
-		writeBinaryForReco(Outputdir, AngleNb, completeNameFile,v_strips,t_strips,energy,GoodEventCounter);
-	}
+if(stream_position>file_size )stop_reading=1;
+if(GoodEventCounter%1000000==0)cout<<GoodEventCounter<<" GoodEventCounter"<<" Stream position "<<stream_position<<" file size  "<<file_size<<endl<<endl;
+}
+if(!binary)write_data2file(Outputdir,data_filename);
+if(binary){
+	ConvertTomm();
+	writeBinaryForReco(Outputdir, AngleNb, completeNameFile,v_strips,t_strips,energy,GoodEventCounter);
+}
 cout<<event_counter<<" events processed; "<<GoodEventCounter<<" good events stored;" <<endl;
 cout<<"Efficency "<<(float)GoodEventCounter/(float)event_counter*100.<<"\%"<< endl;
 cout<<"Exit program, everything went good, Good Bye! ;)"<<endl;
@@ -712,4 +666,3 @@ cout<<"Exit program, everything went good, Good Bye! ;)"<<endl;
 fclose(in_file);
 return 0;
 }
-
