@@ -829,8 +829,8 @@ if(FPGAs_flag==3) {
   Rec3EventCounter++;
   Pnum=GetForthPoint();
   if (Pnum!=9999){
-      	if(Pnum>9) hV[Pnum-10]->Fill(v_strips[Pnum-10][GoodEventCounter]);
-      	else hT[Pnum]->Fill(t_strips[Pnum][GoodEventCounter]);
+//      	if(Pnum>9) hV[Pnum-10]->Fill(v_strips[Pnum-10][GoodEventCounter]);
+//      	else hT[Pnum]->Fill(t_strips[Pnum][GoodEventCounter]);
         float P0[3]={t_strips[0][GoodEventCounter],v_strips[0][GoodEventCounter],u[0]};
         float P1[3]={t_strips[1][GoodEventCounter],v_strips[1][GoodEventCounter],u[1]};
         float P2[3]={t_strips[2][GoodEventCounter],v_strips[2][GoodEventCounter],u[2]};
