@@ -1,7 +1,7 @@
 # unitedCode
 code for pCT raw data reading
  
-The directory where the program is rum must contain the 2 classes for WEPL reconstruction and TV (Wepl.h, CalTV.h) and the writeBinary.cc file.
+The directory where the program is run must contain the 2 classes for WEPL reconstruction and TVcorrection (respect. Wepl.h, CalTV.h) and the writeBinary.cc file.
 compile the main code by: g++ -std=c++0x  -o codePP maincode.cpp.
 At the moment two main codes are uploaded in this repository:
 1: pierReview_int.cpp
@@ -17,7 +17,7 @@ Please add parameters to the executable:
  date[MMDDYYYY] 
  OutputMode[0 =ASCII 1=BINARY]
  
-This program is meant to be used in the pCT file storage system, i.e.:
+This program is intended to be used in the pCT file storage system, i.e.:
 the input file dir is supposed to be:
 path/to/object/DATE/RUN#/Input
 the input file name is:
