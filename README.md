@@ -5,7 +5,7 @@ The directory where the program is rum must contain the 2 classes for WEPL recon
 compile the main code by: g++ -std=c++0x  -o codePP maincode.cpp.
 At the moment two main codes are uploaded in this repository:
 1: pierReview_int.cpp
-   this program just keeps the proton history in which 4 good hits are registered
+   this program just keeps the proton histories in which 4 good hits are registered
 2: PreProcessing3point.cc
    this program recovers the 4th hit coordinates when 3 good hits are registered
 
