@@ -31,7 +31,7 @@
 // #include <TFile.h>
 
 #include "writeBinary.cc"
-//*************************  if ROOT _NOT_ in compile using: g++ -std=c++0x  pierReviewed_int.cpp
+//*************************  if ROOT _NOT_ in compile using: g++ -std=c++0x -o codePP  pierReviewed_int.cpp
 //************************** if ROOT in compile using: g++ -std=c++0x -c `root-config --cflags` PierVlad3points.cpp ; g++ `root-config --glibs` -o codePP PierVlad3points.o
 
 
@@ -252,9 +252,7 @@ void read_eventHeader (unsigned long long eventHeader_bits)
 	if((eventHeader_pz[2] >>= 20 )==1 )cout<<"***********Error flag: !Tag mismatch error!***"<<endl;
 	if((eventHeader_pz[3] >>= 19 )==1 )cout<<"***********Error flag: !CRC error!***"<<endl;
 	if((eventHeader_pz[4] >>= 18 )==1 )cout<<"***********Error flag: !Chip error!***"<<endl;
-
-	if((eventHeader_pz[0] >>= 22 )==2&&(eventHeader_pz[5]%1000000)==0 ) cout<<"Starting event n "<<eventHeader_pz[5]<<" "<< event_counter<< endl;
-}
+	if((eventHeader_pz[0] >>= 22 )==2&&(eventHeader_pz[5]%100000)==0 ) cout<<"Starting event id "<<eventHeader_pz[5]<<" counter "<< event_counter<< endl;}
 //////////////////////////////////////////////////////////FPGAs header function (12 bits)
 // FPGAs header is made of 6 pieces (pz):
 //	-4 bits : FPGA adress 0-11, 1111+8zeros
@@ -524,6 +522,35 @@ int GetForthPoint()
 		return 13;
 	}  else return 9999;
 }
+bool checkCosAnddist()
+{
+    bool cutsFlag =0;
+    float P0[3]={t_strips[0][GoodEventCounter],v_strips[0][GoodEventCounter],u[0]};
+    float P1[3]={t_strips[1][GoodEventCounter],v_strips[1][GoodEventCounter],u[1]};
+    float P2[3]={t_strips[2][GoodEventCounter],v_strips[2][GoodEventCounter],u[2]};
+    float P3[3]={t_strips[3][GoodEventCounter],v_strips[3][GoodEventCounter],u[3]};
+    //check if the cos(angle) betwwen the two straight lines is greater than 0.98 and if the distance between the straight line at 0 is less than 10mm
+    double vectorU[3];
+    double vectorV[3];
+    for (int i=0;i<3;i++){
+      vectorU[i]=P1[i]-P0[i];
+      vectorV[i]=P3[i]-P2[i];
+    }
+    double UdotV=vectorU[0]*vectorV[0]+vectorU[1]*vectorV[1]+vectorU[2]*vectorV[2];
+    double modU=sqrt(vectorU[0]*vectorU[0]+vectorU[1]*vectorU[1]+vectorU[2]*vectorU[2]);
+    double modV=sqrt(vectorV[0]*vectorV[0]+vectorV[1]*vectorV[1]+vectorV[2]*vectorV[2]);
+    double cosTheta = UdotV/(modU*modV);
+    double PinAt0[2]={};
+    double PoutAt0[2]={};
+    GetTVcoord(0.,PinAt0[0],PinAt0[1],P1,P0);
+    GetTVcoord(0.,PoutAt0[0],PoutAt0[1],P3,P2);
+    double distanceAt0= sqrt( (PinAt0[0]-PoutAt0[0])*(PinAt0[0]-PoutAt0[0]) +(PinAt0[1]-PoutAt0[1])*(PinAt0[1]-PoutAt0[1]) );
+    if(cosTheta>=0.98 && distanceAt0<10. ){
+        cutsFlag =1;
+    }
+    return cutsFlag;
+}
+
 int Get_StripNumber(int ChipNo, int ChannelNo, int FPGANo ){
 //The strip number depends on the chip Number(0-11)and the Channel Number(0-63).
 //Each FPGA has 12 (0-11) chips(asics) each of them contains 64(0-63) channels
@@ -828,38 +855,21 @@ while(!stop_reading){
 if(FPGAs_flag==3) {
   Rec3EventCounter++;
   Pnum=GetForthPoint();
-  if (Pnum!=9999){
-//      	if(Pnum>9) hV[Pnum-10]->Fill(v_strips[Pnum-10][GoodEventCounter]);
-//      	else hT[Pnum]->Fill(t_strips[Pnum][GoodEventCounter]);
-        float P0[3]={t_strips[0][GoodEventCounter],v_strips[0][GoodEventCounter],u[0]};
-        float P1[3]={t_strips[1][GoodEventCounter],v_strips[1][GoodEventCounter],u[1]};
-        float P2[3]={t_strips[2][GoodEventCounter],v_strips[2][GoodEventCounter],u[2]};
-        float P3[3]={t_strips[3][GoodEventCounter],v_strips[3][GoodEventCounter],u[3]};
-        //check if the cos(angle) betwwen the two straight lines is greater than 0.98 and if the distance between the straight line at 0 is less than 10mm
-        double vectorU[3];
-        double vectorV[3];
-        for (int i=0;i<3;i++){
-            vectorU[i]=P1[i]-P0[i];
-            vectorV[i]=P3[i]-P2[i];
-        }
-        double UdotV=vectorU[0]*vectorV[0]+vectorU[1]*vectorV[1]+vectorU[2]*vectorV[2];
-        double modU=sqrt(vectorU[0]*vectorU[0]+vectorU[1]*vectorU[1]+vectorU[2]*vectorU[2]);
-        double modV=sqrt(vectorV[0]*vectorV[0]+vectorV[1]*vectorV[1]+vectorV[2]*vectorV[2]);
-        double cosTheta = UdotV/(modU*modV);
-        double PinAt0[2]={};
-        double PoutAt0[2]={};
-        GetTVcoord(0.,PinAt0[0],PinAt0[1],P1,P0);
-        GetTVcoord(0.,PoutAt0[0],PoutAt0[1],P3,P2);
-        double distanceAt0= sqrt( (PinAt0[0]-PoutAt0[0])*(PinAt0[0]-PoutAt0[0]) +(PinAt0[1]-PoutAt0[1])*(PinAt0[1]-PoutAt0[1]) );
-        if(cosTheta>=0.98 && distanceAt0<10. ){
-            FPGAs_flag=4;
-            checkWTHisgoingon++;
-    }
+  if(FPGAs_flag==3) {
+    Rec3EventCounter++;
+    Pnum=GetForthPoint();
+    if (Pnum!=9999){
+       //  	if(Pnum>9) hV[Pnum-10]->Fill(v_strips[Pnum-10][GoodEventCounter]);
+       //  	else hT[Pnum]->Fill(t_strips[Pnum][GoodEventCounter]);
+          if(checkCosAnddist()){
+              FPGAs_flag=4;
+              checkWTHisgoingon++;
+          }
+      }
   }
-}
 
 if(FPGAs_flag==4)GoodEventCounter++;
-	reset_FPGAflags();
+reset_FPGAflags();
 //////////////////////////////////////////////////////
 //	if(stream_position%10000==0)cout<<stream_position<<" "<<file_size<<endl<<endl;
 if(stream_position>file_size )stop_reading=1;
@@ -876,16 +886,9 @@ if(binary){
 // hT[ical]->Draw(" ");  hV[ical]->Draw(" ");}
 // fcn->Write(); fcn->Close("R");
 cout<<event_counter<<" events processed; "<<GoodEventCounter<<" good events stored;" <<endl;
-cout<< " 3 hit events  "<<Rec3EventCounter<<" reconstructed;" <<endl;
 cout<<"Efficency "<<((float)GoodEventCounter)/(float)event_counter*100.<<"\%"<< endl;
-
-cout<<" 3points found "<<(float)(Rec3EventCounter- 0)/(float)event_counter*100.<<"\%"<< endl;
+cout<<"3points found "<<(float)(Rec3EventCounter)/(float)event_counter*100.<<"\%"<< endl;
 cout<<"4 point found but discarded  "<<(float)(Rec3EventCounter- checkWTHisgoingon)/(float)event_counter*100.<<"\%"<< endl;
-
-
 cout<<"Exit program, everything went good, Good Bye! ;)"<<endl;
-//free(buffer);
-
-
 return 0;
 }
