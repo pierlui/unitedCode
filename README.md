@@ -8,6 +8,8 @@ At the moment two main codes are uploaded in this repository:
    this program just keeps the proton histories in which 4 good hits are registered
 2: PreProcessing3point.cc
    this program recovers the 4th hit coordinates when 3 good hits are registered
+3: PreProcessing3pSim.cc
+   this program recovers the 4th hit coordinates when 3 good hits are registered for the simulated output datafile (phase2 version 2)
 
 Please add parameters to the executable:
  .codePP (executable)
