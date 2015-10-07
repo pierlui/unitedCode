@@ -195,9 +195,9 @@ for (int EvtNum=0;EvtNum<GoodEventCounter;EvtNum++){
 		GetTVcoord(Z,Tcorr,Vcorr,Plane3,Plane4);//calling the function to project the beam
 
 		for(int i=0;i<5;i++){
-			Ene[i]=(float)energy[EvtNum][i];
-			Ene[i]-=ped[i];//subtracting ped values
-		   	Ene[i]=f2cal[i]->CalTVf(Tcorr,Vcorr,Ene[i]);//TVcorrection and MeV conversion
+			Ene[i]=energy[EvtNum][i];
+			// Ene[i]-=ped[i];//subtracting ped values
+		 //  	Ene[i]=f2cal[i]->CalTVf(Tcorr,Vcorr,Ene[i]);//TVcorrection and MeV conversion
 		}
 		Wet=WEPL->EtoWEPL(Ene);
 		WetBinary[EvtNum]=Wet;
