@@ -31,7 +31,7 @@
 // #include <TFile.h>
 
 #include "writeBinarySim.cc"
-//*************************  if ROOT _NOT_ in compile using: g++ -std=c++0x -o codePP  PreProcessSim.cc
+//*************************  if ROOT _NOT_ in compile using: g++ -std=c++0x -o codePP  PreProcess3pSim.cc
 //************************** if ROOT in compile using: g++ -std=c++0x -c `root-config --cflags` PierVlad3points.cpp ; g++ `root-config --glibs` -o codePP PierVlad3points.o
 
 
