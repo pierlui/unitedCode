@@ -11,7 +11,7 @@ At the moment 3 main codes are uploaded in this repository:
 3: PreProcessing3pSim.cc
    this program recovers the 4th hit coordinates when 3 good hits are registered for the simulated output datafile (phase2 version 2)
 
-Please add parameters to the executable:
+Please add parameters to the executable:\n
  .codePP (executable)
  projection# 
  fileName[Object_RUN#]  
