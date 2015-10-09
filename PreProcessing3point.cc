@@ -31,7 +31,7 @@
 // #include <TFile.h>
 
 #include "writeBinary.cc"
-//*************************  if ROOT _NOT_ in compile using: g++ -std=c++0x -o codePP  pierReviewed_int.cpp
+//*************************  if ROOT _NOT_ in compile using: g++ -std=c++0x   PreProcessing3point.cc
 //************************** if ROOT in compile using: g++ -std=c++0x -c `root-config --cflags` PierVlad3points.cpp ; g++ `root-config --glibs` -o codePP PierVlad3points.o
 
 
@@ -252,7 +252,9 @@ void read_eventHeader (unsigned long long eventHeader_bits)
 	if((eventHeader_pz[2] >>= 20 )==1 )cout<<"***********Error flag: !Tag mismatch error!***"<<endl;
 	if((eventHeader_pz[3] >>= 19 )==1 )cout<<"***********Error flag: !CRC error!***"<<endl;
 	if((eventHeader_pz[4] >>= 18 )==1 )cout<<"***********Error flag: !Chip error!***"<<endl;
-	if((eventHeader_pz[0] >>= 22 )==2&&(eventHeader_pz[5]%100000)==0 ) cout<<"Starting event id "<<eventHeader_pz[5]<<" counter "<< event_counter<< endl;}
+
+	if((eventHeader_pz[0] >>= 22 )==2&&(eventHeader_pz[5]%1000000)==0 ) cout<<"Starting event n "<<eventHeader_pz[5]<<" "<< event_counter<< endl;
+}
 //////////////////////////////////////////////////////////FPGAs header function (12 bits)
 // FPGAs header is made of 6 pieces (pz):
 //	-4 bits : FPGA adress 0-11, 1111+8zeros
@@ -522,6 +524,7 @@ int GetForthPoint()
 		return 13;
 	}  else return 9999;
 }
+
 bool checkCosAnddist()
 {
     bool cutsFlag =0;
@@ -855,21 +858,21 @@ while(!stop_reading){
 if(FPGAs_flag==3) {
   Rec3EventCounter++;
   Pnum=GetForthPoint();
-  if(FPGAs_flag==3) {
-    Rec3EventCounter++;
-    Pnum=GetForthPoint();
-    if (Pnum!=9999){
-       //  	if(Pnum>9) hV[Pnum-10]->Fill(v_strips[Pnum-10][GoodEventCounter]);
-       //  	else hT[Pnum]->Fill(t_strips[Pnum][GoodEventCounter]);
-          if(checkCosAnddist()){
-              FPGAs_flag=4;
-              checkWTHisgoingon++;
-          }
-      }
-  }
+  if (Pnum!=9999){
+     //  	if(Pnum>9) hV[Pnum-10]->Fill(v_strips[Pnum-10][GoodEventCounter]);
+     //  	else hT[Pnum]->Fill(t_strips[Pnum][GoodEventCounter]);
+        if(checkCosAnddist()){
+            FPGAs_flag=4;
+            checkWTHisgoingon++;
+        }
+    }
+
+
+
+}
 
 if(FPGAs_flag==4)GoodEventCounter++;
-reset_FPGAflags();
+	reset_FPGAflags();
 //////////////////////////////////////////////////////
 //	if(stream_position%10000==0)cout<<stream_position<<" "<<file_size<<endl<<endl;
 if(stream_position>file_size )stop_reading=1;
@@ -886,9 +889,14 @@ if(binary){
 // hT[ical]->Draw(" ");  hV[ical]->Draw(" ");}
 // fcn->Write(); fcn->Close("R");
 cout<<event_counter<<" events processed; "<<GoodEventCounter<<" good events stored;" <<endl;
+cout<< "3-hits events  "<<Rec3EventCounter<<" reconstructed; " <<(float)(Rec3EventCounter)/(float)event_counter*100.<<"\%"<< endl;
+cout<<"4th hits reconstructed but discarded  "<<(float)(Rec3EventCounter- checkWTHisgoingon)/(float)event_counter*100.<<"\%"<< endl;
 cout<<"Efficency "<<((float)GoodEventCounter)/(float)event_counter*100.<<"\%"<< endl;
-cout<<"3points found "<<(float)(Rec3EventCounter)/(float)event_counter*100.<<"\%"<< endl;
-cout<<"4 point found but discarded  "<<(float)(Rec3EventCounter- checkWTHisgoingon)/(float)event_counter*100.<<"\%"<< endl;
+
+
 cout<<"Exit program, everything went good, Good Bye! ;)"<<endl;
+//free(buffer);
+
+
 return 0;
 }
