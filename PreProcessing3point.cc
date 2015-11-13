@@ -169,11 +169,12 @@ unsigned int just_read(unsigned long long & bit_container, unsigned int & num_bi
 void read_file_header(unsigned long long fileHeader_bits, char *namefile)
 {
 //the number 13784398 corresponds to the bit string: 0000 0000 1101 0010 0101 0101 0100 1110 = "1RUN" in std ASCII( in a fancy way)
-	if(fileHeader_bits== 13784398)cout<<"Reading pCT file: "<<namefile<<endl;
+	fileHeader_bits &= 0xFFFFFF;
+	if(fileHeader_bits== 13784398 )cout<<"Reading pCT file: "<<namefile<<endl;
 	if(fileHeader_bits!= 13784398){
 		perror ("The file is not a pCT file");
 		exit(1);
-	}
+		}
 }
 //////////////////////////////////////////////////////////run number function
 void read_run_number(unsigned long long runNumber_bits){cout<<"Run Number: "<<runNumber_bits<<endl;}
